@@ -45,7 +45,22 @@ git clone https://github.com/erichua23/openclaw-soul-anchor.git ~/.openclaw/exte
 
 > **注意：** 必须装到 `extensions/` 目录，不能装到 `hooks/`。只有 Plugin 的 `before_prompt_build` 返回值才会被 OpenClaw 采纳。
 
-不需要修改 `openclaw.json`。OpenClaw gateway 启动时会自动扫描 `extensions/` 目录并加载所有包含 `openclaw.plugin.json` 的插件。
+然后在 `~/.openclaw/openclaw.json` 的 `plugins` 中启用插件：
+
+```json
+{
+  "plugins": {
+    "allow": ["soul-anchor"],
+    "entries": {
+      "soul-anchor": {
+        "enabled": true
+      }
+    }
+  }
+}
+```
+
+> `allow` 是插件白名单，`entries` 控制开关。两处都要加，插件才会生效。
 
 ### 2. 为 Agent 创建约束文件
 
@@ -136,7 +151,7 @@ openclaw gateway restart
 rm ~/.openclaw/workspaces/your_agent_id/SOUL-ANCHOR.md
 ```
 
-插件是自动发现的，无需修改 `openclaw.json`，删目录就干净了。
+如果要彻底清理，也可以从 `openclaw.json` 的 `plugins.allow` 和 `plugins.entries` 中移除 `soul-anchor`，但留着不会报错。
 
 ## 用了 Soul Anchor 还是越界？
 
