@@ -63,6 +63,23 @@ openclaw gateway restart
 
 之后修改 `SOUL-ANCHOR.md` **不需要重启**，约 60 秒自动生效。
 
+### 4. 验证安装
+
+重启 gateway 后，查看日志确认插件已加载：
+
+```bash
+grep soul-anchor ~/.openclaw/logs/gateway.log | tail -5
+```
+
+看到以下两行说明安装成功：
+
+```
+[soul-anchor] Initialized with anchorFilename="SOUL-ANCHOR.md", cacheTtlMs=60000ms
+[soul-anchor] Plugin registered and ready
+```
+
+然后跟 Agent 对话，让它复述自己的约束（例如"你有哪些不能做的事？"），确认约束内容已注入。
+
 ## 编写约束的建议
 
 **关键约束首尾呼应** — 在文件顶部的身份边界和底部的重申中都写明核心禁令，即使中间内容被 LLM 部分遗忘，首尾也能覆盖。
@@ -108,6 +125,27 @@ openclaw gateway restart
 
 - 确保 UTF-8 编码
 - 确保 gateway 进程有读权限
+
+## 卸载
+
+Soul Anchor 是纯本地插件，不修改 OpenClaw 核心文件，卸载干净无残留：
+
+```bash
+# 1. 删除插件目录
+rm -rf ~/.openclaw/extensions/soul-anchor
+
+# 2. 重启 gateway
+openclaw gateway restart
+```
+
+各 Agent workspace 下的 `SOUL-ANCHOR.md` 约束文件可以保留（不影响任何功能），也可以按需删除：
+
+```bash
+# 可选：删除某个 Agent 的约束文件
+rm ~/.openclaw/workspaces/your_agent_id/SOUL-ANCHOR.md
+```
+
+如果在 `openclaw.json` 中添加过 `plugins.soul-anchor` 配置，也可以一并移除，但留着也不会报错。
 
 ## 兼容性
 
