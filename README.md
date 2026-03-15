@@ -45,6 +45,8 @@ git clone https://github.com/erichua23/openclaw-soul-anchor.git ~/.openclaw/exte
 
 > **注意：** 必须装到 `extensions/` 目录，不能装到 `hooks/`。只有 Plugin 的 `before_prompt_build` 返回值才会被 OpenClaw 采纳。
 
+不需要修改 `openclaw.json`。OpenClaw gateway 启动时会自动扫描 `extensions/` 目录并加载所有包含 `openclaw.plugin.json` 的插件。
+
 ### 2. 为 Agent 创建约束文件
 
 Soul Anchor 根据 `~/.openclaw/openclaw.json` 中 `agents.list` 里每个 agent 的 `workspace` 字段来查找约束文件。先确认你的 agent 配置：
