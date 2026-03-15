@@ -1,157 +1,77 @@
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-const OC_HOME = join(homedir(), ".openclaw");
-const OC_CONFIG = join(OC_HOME, "openclaw.json");
-
-/**
- * Load OpenClaw configuration from ~/.openclaw/openclaw.json
- * @returns {object|null} Parsed config object or null if load fails
- */
-function loadConfig() {
-  try {
-    return JSON.parse(readFileSync(OC_CONFIG, "utf-8"));
-  } catch (err) {
-    console.error(
-      `[soul-anchor] Failed to load openclaw.json from ${OC_CONFIG}:`,
-      err.message
-    );
-    return null;
-  }
-}
-
-/**
- * Build a mapping from agentId to workspace directory
- * @param {object} config - OpenClaw configuration object
- * @returns {object} Map of agentId -> workspaceDir
- */
-function buildWorkspaceMap(config) {
-  const map = {};
-  const agents = config?.agents || [];
-  for (const agent of agents) {
-    if (agent.id && agent.workspace) {
-      map[agent.id] = agent.workspace;
-    }
-  }
-  return map;
-}
-
-/**
- * Load anchor constraints from a workspace directory
- * @param {string} workspaceDir - Path to agent workspace
- * @param {string} filename - Name of the anchor file (default: SOUL-ANCHOR.md)
- * @returns {string|null} File content or null if not found/readable
- */
-function loadAnchor(workspaceDir, filename) {
-  const anchorPath = join(workspaceDir, filename);
-  if (!existsSync(anchorPath)) {
-    return null;
-  }
-  try {
-    const content = readFileSync(anchorPath, "utf-8").trim();
-    return content.length > 0 ? content : null;
-  } catch (err) {
-    console.warn(
-      `[soul-anchor] Failed to read anchor file ${anchorPath}:`,
-      err.message
-    );
-    return null;
-  }
-}
+const CONFIG_DIR = join(homedir(), ".openclaw");
 
 /**
  * Soul Anchor Plugin
  *
- * Injects per-agent constraints into the system prompt tail on every turn.
+ * Reads SOUL-ANCHOR.md from each agent's workspace and injects it
+ * via before_prompt_build → prependContext (prepended to user message).
  *
- * CRITICAL ARCHITECTURE NOTE:
- * ============================
- * This MUST be implemented as a Plugin (in ~/.openclaw/extensions/), NOT a Managed Hook
- * (in ~/.openclaw/hooks/). The two have completely different code paths:
+ * prependContext places the anchor right before the latest user message,
+ * which is the highest-attention position in the context window.
+ * (appendSystemContext only appends to system prompt, which drifts away
+ * from attention as conversations grow longer.)
  *
- * 1. Managed Hook (~/.openclaw/hooks/):
- *    registerInternalHook() → triggerInternalHook() → FIRE-AND-FORGET (void return)
- *    - Return values are IGNORED
- *    - appendSystemContext has NO EFFECT
+ * File layout:
+ *   ~/.openclaw/workspaces/<workspace>/SOUL-ANCHOR.md
  *
- * 2. Plugin (~/.openclaw/extensions/):
- *    api.on() → registerTypedHook() → registry.typedHooks → hookRunner.runBeforePromptBuild()
- *    - Return values are COLLECTED
- *    - appendSystemContext is MERGED into the system prompt
- *
- * This architectural difference is not documented in OpenClaw but is evident from source code.
- * Only Plugins can successfully inject system context on every turn.
+ * If the file doesn't exist for an agent, nothing is injected.
  */
-export default {
+
+// Map agentId → workspace directory name (from openclaw.json agents.list)
+// Loaded once at plugin registration time
+function loadAgentWorkspaceMap() {
+  try {
+    const raw = readFileSync(join(CONFIG_DIR, "openclaw.json"), "utf-8");
+    const config = JSON.parse(raw);
+    const map = {};
+    for (const agent of config.agents?.list ?? []) {
+      if (agent.id && agent.workspace) {
+        map[agent.id] = agent.workspace;
+      }
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
+function loadAnchor(workspaceDir) {
+  const anchorPath = join(workspaceDir, "SOUL-ANCHOR.md");
+  try {
+    const raw = readFileSync(anchorPath, "utf-8").trim();
+    return raw || null;
+  } catch {
+    return null;
+  }
+}
+
+const plugin = {
   id: "soul-anchor",
   name: "Soul Anchor",
+  description: "Inject hard constraints into system prompt, immune to context dilution.",
 
-  /**
-   * Plugin registration entry point
-   * @param {object} api - OpenClaw Plugin API
-   */
   register(api) {
-    // Load OpenClaw configuration
-    const config = loadConfig();
-    if (!config) {
-      console.error(
-        "[soul-anchor] Failed to load openclaw.json, plugin disabled"
-      );
-      return;
-    }
+    const workspaceMap = loadAgentWorkspaceMap();
 
-    // Build agentId -> workspace mapping
-    const workspaceMap = buildWorkspaceMap(config);
-    if (Object.keys(workspaceMap).length === 0) {
-      console.warn(
-        "[soul-anchor] No agents found in openclaw.json, plugin loaded but no constraints will be injected"
-      );
-    }
+    api.on("before_prompt_build", (event, ctx) => {
+      const agentId = ctx?.agentId;
+      if (!agentId) return {};
 
-    // Load plugin configuration
-    const pluginConfig = config?.plugins?.["soul-anchor"]?.config || {};
-    const anchorFilename = pluginConfig.anchorFilename || "SOUL-ANCHOR.md";
+      const workspaceDir = workspaceMap[agentId];
+      if (!workspaceDir) return {};
 
-    console.log(
-      `[soul-anchor] Initialized with anchorFilename="${anchorFilename}"`
-    );
+      const anchor = loadAnchor(workspaceDir);
+      if (!anchor) return {};
 
-    /**
-     * Hook: before_prompt_build
-     *
-     * Triggered just before OpenClaw constructs the LLM prompt.
-     * Returns { appendSystemContext } which is merged into the system prompt's tail.
-     * High priority (999) ensures constraints are appended last, closest to user message.
-     *
-     * @param {object} event - Hook event object
-     * @param {object} ctx - Hook context, includes agentId
-     * @returns {object} { appendSystemContext?: string } or {}
-     */
-    api.on(
-      "before_prompt_build",
-      (event, ctx) => {
-        const agentId = ctx?.agentId;
-
-        // No agentId = not in agent context, skip
-        if (!agentId) {
-          return {};
-        }
-
-        // Agent not in workspace map, skip silently
-        const workspaceDir = workspaceMap[agentId];
-        if (!workspaceDir) {
-          return {};
-        }
-
-        // Load anchor file (direct read every turn, ~1ms for a small file)
-        const content = loadAnchor(workspaceDir, anchorFilename);
-
-        return content ? { appendSystemContext: content } : {};
-      },
-      { priority: 999 } // Highest priority: injected last (closest to user message)
-    );
-
-    console.log("[soul-anchor] Plugin registered and ready");
+      return {
+        prependContext: anchor,
+      };
+    }, { priority: 999 });
   },
 };
+
+export default plugin;

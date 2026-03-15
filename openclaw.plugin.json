@@ -1,34 +1,10 @@
 {
   "id": "soul-anchor",
   "name": "Soul Anchor",
-  "version": "1.0.0",
-  "description": "Injects per-agent constraints into the system prompt tail on every turn, countering context dilution in long conversations.",
-  "author": "OpenClaw Community",
-  "homepage": "https://github.com/openclaw/soul-anchor",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/openclaw/soul-anchor.git"
-  },
-  "keywords": [
-    "agent",
-    "constraint",
-    "context",
-    "system-prompt",
-    "long-conversation"
-  ],
-  "engines": {
-    "openclaw": ">=2026.3.0",
-    "node": ">=18.0.0"
-  },
+  "description": "Inject hard constraints into system prompt via before_prompt_build, immune to context dilution.",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
-    "properties": {
-      "anchorFilename": {
-        "type": "string",
-        "default": "SOUL-ANCHOR.md",
-        "description": "Name of the anchor file to look for in each agent's workspace directory"
-      }
-    }
+    "properties": {}
   }
 }

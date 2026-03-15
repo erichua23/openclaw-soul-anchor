@@ -74,7 +74,6 @@ grep soul-anchor ~/.openclaw/logs/gateway.log | tail -5
 看到以下两行说明安装成功：
 
 ```
-[soul-anchor] Initialized with anchorFilename="SOUL-ANCHOR.md"
 [soul-anchor] Plugin registered and ready
 ```
 
@@ -87,27 +86,6 @@ grep soul-anchor ~/.openclaw/logs/gateway.log | tail -5
 **具体、可验证** — 避免"不要做危险的事"这种模糊表述，写清楚具体文件名、目录、操作。
 
 **控制篇幅** — 单个 SOUL-ANCHOR.md 保持 500-1000 字，核心约束 3-5 条。过多约束反而降低效果。
-
-## 配置
-
-在 `openclaw.json` 中配置：
-
-```json
-{
-  "plugins": {
-    "soul-anchor": {
-      "enabled": true,
-      "config": {
-        "anchorFilename": "SOUL-ANCHOR.md"
-      }
-    }
-  }
-}
-```
-
-| 配置项 | 默认值 | 说明 |
-|-------|-------|------|
-| `anchorFilename` | `SOUL-ANCHOR.md` | 约束文件名，位于各 Agent 的 workspace 目录 |
 
 ## 故障排查
 
@@ -142,12 +120,7 @@ openclaw gateway restart
 rm ~/.openclaw/workspaces/your_agent_id/SOUL-ANCHOR.md
 ```
 
-如果在 `openclaw.json` 中添加过 `plugins.soul-anchor` 配置，也可以一并移除，但留着也不会报错。
-
-## 兼容性
-
-- OpenClaw >= 2026.3.0
-- Node.js >= 18
+插件是自动发现的，无需修改 `openclaw.json`，删目录就干净了。
 
 ## 用了 Soul Anchor 还是越界？
 
