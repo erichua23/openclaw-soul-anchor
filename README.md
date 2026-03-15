@@ -1,4 +1,4 @@
-# OpenClaw Soul Anchor
+# OpenClaw 定魂锚 (Soul Anchor)
 
 每轮对话将硬性约束注入 system prompt 末尾，防止 Agent 在长对话中遗忘规则。
 
