@@ -47,13 +47,27 @@ git clone https://github.com/erichua23/openclaw-soul-anchor.git ~/.openclaw/exte
 
 ### 2. 为 Agent 创建约束文件
 
+Soul Anchor 根据 `~/.openclaw/openclaw.json` 中 `agents.list` 里每个 agent 的 `workspace` 字段来查找约束文件。先确认你的 agent 配置：
+
 ```bash
-# 把 your_agent_id 换成实际的 Agent ID
-cp ~/.openclaw/extensions/soul-anchor/examples/SOUL-ANCHOR.example.md \
-   ~/.openclaw/workspaces/your_agent_id/SOUL-ANCHOR.md
+cat ~/.openclaw/openclaw.json | jq '.agents.list[] | {id, workspace}'
 ```
 
-然后编辑这个文件，写入你要的约束。推荐结构见 `examples/SOUL-ANCHOR.example.md`。
+输出类似：
+
+```json
+{ "id": "main", "workspace": "/Users/you/.openclaw/workspaces/main" }
+{ "id": "my_agent", "workspace": "/Users/you/.openclaw/workspaces/my_agent" }
+```
+
+然后把示例文件复制到对应 agent 的 workspace 目录：
+
+```bash
+cp ~/.openclaw/extensions/soul-anchor/examples/SOUL-ANCHOR.example.md \
+   <workspace路径>/SOUL-ANCHOR.md
+```
+
+编辑这个文件，写入你要的约束。推荐结构见 `examples/SOUL-ANCHOR.example.md`。
 
 ### 3. 重启 gateway
 
