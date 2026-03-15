@@ -40,50 +40,28 @@ Soul Anchor 的做法很简单——**每轮对话把约束追加到 system prom
 ### 1. 安装插件
 
 ```bash
-cp -r openclaw-soul-anchor ~/.openclaw/extensions/soul-anchor
+git clone https://github.com/erichua23/openclaw-soul-anchor.git ~/.openclaw/extensions/soul-anchor
 ```
 
-> **注意：** Soul Anchor 必须作为 Plugin 安装到 `~/.openclaw/extensions/`，不能作为 Hook 安装到 `~/.openclaw/hooks/`。只有 Plugin 的 `before_prompt_build` 返回值才会被 OpenClaw 采纳，Hook 的返回值会被忽略。
+> **注意：** 必须装到 `extensions/` 目录，不能装到 `hooks/`。只有 Plugin 的 `before_prompt_build` 返回值才会被 OpenClaw 采纳。
 
-### 2. 创建约束文件
-
-为每个需要约束的 Agent 创建 `SOUL-ANCHOR.md`：
+### 2. 为 Agent 创建约束文件
 
 ```bash
-mkdir -p ~/.openclaw/workspaces/your_agent_id
-cp examples/SOUL-ANCHOR.example.md ~/.openclaw/workspaces/your_agent_id/SOUL-ANCHOR.md
+# 把 your_agent_id 换成实际的 Agent ID
+cp ~/.openclaw/extensions/soul-anchor/examples/SOUL-ANCHOR.example.md \
+   ~/.openclaw/workspaces/your_agent_id/SOUL-ANCHOR.md
 ```
 
-### 3. 编辑约束内容
+然后编辑这个文件，写入你要的约束。推荐结构见 `examples/SOUL-ANCHOR.example.md`。
 
-根据 Agent 的身份和职责定制内容。推荐结构：
-
-```markdown
-## 身份与边界
-
-你是 [Agent 名称]，职责：[描述]
-
-### 禁止操作
-- 不得修改 openclaw.json
-- 不得写入 skills/ 目录
-
-## 工作流
-
-- 长任务必须先通知用户
-- 技能开发必须走申请流程
-
-## 重申
-
-禁止修改配置文件、禁止越权操作。
-```
-
-### 4. 重启 gateway
+### 3. 重启 gateway
 
 ```bash
 openclaw gateway restart
 ```
 
-修改 `SOUL-ANCHOR.md` 后**不需要重启**，约 60 秒后自动生效（缓存 TTL 可配置）。
+之后修改 `SOUL-ANCHOR.md` **不需要重启**，约 60 秒自动生效。
 
 ## 编写约束的建议
 
