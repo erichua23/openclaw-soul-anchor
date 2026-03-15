@@ -1,0 +1,40 @@
+{
+  "name": "openclaw-soul-anchor",
+  "version": "1.0.0",
+  "description": "OpenClaw plugin to inject per-agent constraints into the system prompt tail, countering context dilution in long conversations.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "agent",
+    "constraint",
+    "system-prompt",
+    "context-dilution",
+    "long-conversation"
+  ],
+  "author": "OpenClaw Community",
+  "license": "MIT",
+  "homepage": "https://github.com/openclaw/soul-anchor",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openclaw/soul-anchor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/openclaw/soul-anchor/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "openclaw": ">=2026.3.0"
+  },
+  "files": [
+    "index.js",
+    "openclaw.plugin.json",
+    "README.md",
+    "LICENSE",
+    "examples/"
+  ]
+}
