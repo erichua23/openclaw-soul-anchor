@@ -28,11 +28,6 @@
         "type": "string",
         "default": "SOUL-ANCHOR.md",
         "description": "Name of the anchor file to look for in each agent's workspace directory"
-      },
-      "cacheTtlMs": {
-        "type": "number",
-        "default": 60000,
-        "description": "How long to cache the anchor file content (milliseconds). Set to 0 to disable caching."
       }
     }
   }

@@ -5,9 +5,6 @@ import { homedir } from "node:os";
 const OC_HOME = join(homedir(), ".openclaw");
 const OC_CONFIG = join(OC_HOME, "openclaw.json");
 
-// Cache: agentId -> { content, loadedAt }
-const cache = new Map();
-
 /**
  * Load OpenClaw configuration from ~/.openclaw/openclaw.json
  * @returns {object|null} Parsed config object or null if load fails
@@ -115,10 +112,9 @@ export default {
     // Load plugin configuration
     const pluginConfig = config?.plugins?.["soul-anchor"]?.config || {};
     const anchorFilename = pluginConfig.anchorFilename || "SOUL-ANCHOR.md";
-    const cacheTtlMs = pluginConfig.cacheTtlMs ?? 60_000; // Default 60 seconds
 
     console.log(
-      `[soul-anchor] Initialized with anchorFilename="${anchorFilename}", cacheTtlMs=${cacheTtlMs}ms`
+      `[soul-anchor] Initialized with anchorFilename="${anchorFilename}"`
     );
 
     /**
@@ -148,28 +144,10 @@ export default {
           return {};
         }
 
-        // Check cache
-        const now = Date.now();
-        const cached = cache.get(agentId);
-        if (cached && cacheTtlMs > 0 && now - cached.loadedAt < cacheTtlMs) {
-          // Cache hit
-          return cached.content
-            ? { appendSystemContext: cached.content }
-            : {};
-        }
-
-        // Load anchor file (cache miss or TTL expired)
+        // Load anchor file (direct read every turn, ~1ms for a small file)
         const content = loadAnchor(workspaceDir, anchorFilename);
 
-        // Store in cache (even if null, to avoid repeated reads)
-        cache.set(agentId, { content, loadedAt: now });
-
-        // Return constraint if found
-        if (!content) {
-          return {};
-        }
-
-        return { appendSystemContext: content };
+        return content ? { appendSystemContext: content } : {};
       },
       { priority: 999 } // Highest priority: injected last (closest to user message)
     );

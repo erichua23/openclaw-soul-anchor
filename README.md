@@ -61,7 +61,7 @@ cp ~/.openclaw/extensions/soul-anchor/examples/SOUL-ANCHOR.example.md \
 openclaw gateway restart
 ```
 
-之后修改 `SOUL-ANCHOR.md` **不需要重启**，约 60 秒自动生效。
+之后修改 `SOUL-ANCHOR.md` **不需要重启**，下一轮对话立即生效。
 
 ### 4. 验证安装
 
@@ -74,7 +74,7 @@ grep soul-anchor ~/.openclaw/logs/gateway.log | tail -5
 看到以下两行说明安装成功：
 
 ```
-[soul-anchor] Initialized with anchorFilename="SOUL-ANCHOR.md", cacheTtlMs=60000ms
+[soul-anchor] Initialized with anchorFilename="SOUL-ANCHOR.md"
 [soul-anchor] Plugin registered and ready
 ```
 
@@ -98,8 +98,7 @@ grep soul-anchor ~/.openclaw/logs/gateway.log | tail -5
     "soul-anchor": {
       "enabled": true,
       "config": {
-        "anchorFilename": "SOUL-ANCHOR.md",
-        "cacheTtlMs": 60000
+        "anchorFilename": "SOUL-ANCHOR.md"
       }
     }
   }
@@ -109,7 +108,6 @@ grep soul-anchor ~/.openclaw/logs/gateway.log | tail -5
 | 配置项 | 默认值 | 说明 |
 |-------|-------|------|
 | `anchorFilename` | `SOUL-ANCHOR.md` | 约束文件名，位于各 Agent 的 workspace 目录 |
-| `cacheTtlMs` | `60000` | 缓存时间（毫秒），设为 `0` 禁用缓存 |
 
 ## 故障排查
 
@@ -118,8 +116,7 @@ grep soul-anchor ~/.openclaw/logs/gateway.log | tail -5
 1. 确认文件存在：`ls ~/.openclaw/workspaces/{agentId}/SOUL-ANCHOR.md`
 2. 确认文件权限：`chmod 644 ~/.openclaw/workspaces/{agentId}/SOUL-ANCHOR.md`
 3. 确认 Agent workspace 路径正确：`cat ~/.openclaw/openclaw.json | jq '.agents'`
-4. 等待缓存过期（默认 60 秒）或将 `cacheTtlMs` 设为 `0` 测试
-5. 查看日志：`tail -100f ~/.openclaw/logs/gateway.log | grep soul-anchor`
+4. 查看日志：`tail -100f ~/.openclaw/logs/gateway.log | grep soul-anchor`
 
 **约束文件读取失败？**
 
